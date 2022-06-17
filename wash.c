@@ -6,9 +6,10 @@
 #include <errno.h>
 
 
-extern int errno;
 const size_t MAX_INPUT_CHARS = 256;
 const size_t MAX_INPUT_ARGS = 20;
+
+char* shell_path[20] = {0};
 
 /**
  * @brief Shell color codes for output text color.
@@ -25,7 +26,6 @@ typedef enum Color {
     PURPLE_COLOR = 35 ,
     CYAN_COLOR = 36,
 } Color;
-
 /**
  * @brief Shell style codes for output text style.
  * 
@@ -105,6 +105,9 @@ int GetInputCommandCode(char command[]){
     else if ( strcmp(command, "setpath") == 0 ) {
         return SETPATH;
     }
+    else if ( strcmp(command, "getpath") == 0 ) {
+        return GETPATH;
+    }
     else if ( strcmp(command, "help") == 0 ) {
         return HELP;
     }
@@ -112,7 +115,9 @@ int GetInputCommandCode(char command[]){
         return UNKNOWN;
     }
 }
+void AddPath(const char* path){
 
+}
 void CommandPwd() {
     char* cwd;
     cwd = getcwd(cwd, 256);
@@ -145,9 +150,17 @@ void CommandCd(char** args, size_t argCount){
     }
 }
 void CommandSetPath(char** args, size_t argCount) {
+
 }
 void CommandGetPath() {
-    
+    SetTextColor(YELLOW_COLOR);
+
+    size_t i = 0;
+    char* current;
+    while ( (current = shell_path[i]) != NULL ) {
+        printf("%s\n", current);
+        i += 1;
+    }
 }
 void CommandHelp() {
     printf("\n");
@@ -181,11 +194,9 @@ void CommandHelp() {
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("   - displays this help page.\n\n");
 }
-
 void CommandExternal(const char* command, char* tokens){
     printf("unknown command entered: %s\n", command);
     printf("Args: ");
-
 }
 
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
@@ -215,11 +226,14 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
     else if ( command == SETPATH ) {
         CommandSetPath(args, argCount);
     }
+    else if ( command == GETPATH ) {
+        CommandGetPath();
+    }
     else if ( command == HELP ) {
         CommandHelp();
     }
     else if ( command == UNKNOWN ) {
-
+        
     }
 }
 
@@ -232,6 +246,10 @@ int main(int argc, char const *argv[]) {
     printf("Welcome to the wash - the Washington Shell.\n");
     printf("Enter 'help' to see a list of available commands.\n");
     printf("\n");
+
+    // initialize path
+    char* cwd = getcwd(cwd, 256);
+    shell_path[0] = cwd;
 
     // Prompt for input & pass tokens to CommandHandler()
     // until CommandHandler() returns -1 (exit)
@@ -266,7 +284,7 @@ int main(int argc, char const *argv[]) {
      } while ( commandResult != -1 );
 
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
-    printf("\n ---->-- END WASH SHELL -------{--(@      \n");
+    printf("\n ---->-- END WASH SHELL -------{--(@\n\n");
     SetTextColorAndStyle(DEFAULT_COLOR, REGULAR_FONT);
     return 0;
 }
