@@ -119,10 +119,10 @@ void AddPath(const char* path){
 
 }
 void CommandPwd() {
+    SetTextColor(BLUE_COLOR);
+
     char* cwd;
     cwd = getcwd(cwd, 256);
-
-    SetTextColor(YELLOW_COLOR);
     printf("Current Directory: %s\n\n", cwd);
 }
 void CommandCd(char** args, size_t argCount){
@@ -153,7 +153,7 @@ void CommandSetPath(char** args, size_t argCount) {
 
 }
 void CommandGetPath() {
-    SetTextColor(YELLOW_COLOR);
+    SetTextColor(BLUE_COLOR);
 
     size_t i = 0;
     char* current;
@@ -233,7 +233,7 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
         CommandHelp();
     }
     else if ( command == UNKNOWN ) {
-        
+
     }
 }
 
