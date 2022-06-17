@@ -118,12 +118,17 @@ int GetInputCommandCode(char command[]){
 void AddPath(const char* path){
 
 }
-void CommandPwd() {
-    SetTextColor(BLUE_COLOR);
+void CommandPwd(size_t argCount) {
+    if (argCount > 0) {
+        SetTextColor(YELLOW_COLOR);
+        printf("'pwd' does not accept any arguments. The ");
+        printf("additional arguments were ignored.\n");
+    }
 
+    SetTextColor(BLUE_COLOR);
     char* cwd;
     cwd = getcwd(cwd, 256);
-    printf("Current Directory: %s\n\n", cwd);
+    printf("CWD: %s\n\n", cwd);
 }
 void CommandCd(char** args, size_t argCount){
 
@@ -152,9 +157,14 @@ void CommandCd(char** args, size_t argCount){
 void CommandSetPath(char** args, size_t argCount) {
 
 }
-void CommandGetPath() {
-    SetTextColor(BLUE_COLOR);
+void CommandGetPath(size_t argCount) {
+    if (argCount > 0) {
+        SetTextColor(YELLOW_COLOR);
+        printf("'getpath' does not accept any arguments. The ");
+        printf("additional arguments were ignored.\n");
+    }
 
+    SetTextColor(BLUE_COLOR);
     size_t i = 0;
     char* current;
     while ( (current = shell_path[i]) != NULL ) {
@@ -162,7 +172,13 @@ void CommandGetPath() {
         i += 1;
     }
 }
-void CommandHelp() {
+void CommandHelp(size_t argCount) {
+    if (argCount > 0) {
+        SetTextColor(YELLOW_COLOR);
+        printf("'help' does not accept any arguments. The ");
+        printf("additional arguments were ignored.\n");
+    }
+
     printf("\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("The following commands are available:\n");
@@ -218,7 +234,7 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
         return -1;
     }
     else if ( command == PWD ) {
-        CommandPwd();
+        CommandPwd(argCount);
     }
     else if ( command == CD ) {
         CommandCd(args, argCount);
@@ -227,10 +243,10 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
         CommandSetPath(args, argCount);
     }
     else if ( command == GETPATH ) {
-        CommandGetPath();
+        CommandGetPath(argCount);
     }
     else if ( command == HELP ) {
-        CommandHelp();
+        CommandHelp(argCount);
     }
     else if ( command == UNKNOWN ) {
 
