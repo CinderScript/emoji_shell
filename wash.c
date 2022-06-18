@@ -75,12 +75,27 @@ typedef enum Command {
     HELP = 7
 } Command;
 
-char* AllocateShellPath(const char* path){
-    size_t charCount = strlen(path) + 1; // plus '\0'
+/**
+ * @brief Helper function to allocate a string to the heap.
+ *          This is used by the setpath command so the 
+ *          paths can be accessed from a different call stack.
+ * 
+ * @param path - the string to save (stack variable)
+ * @return char* - the heap allocated string
+ */
+char* AllocateHeapString(const char* string){
+    size_t charCount = strlen(string) + 1; // plus '\0'
     char* savedPath = malloc(charCount * sizeof(char));
-    strcpy(savedPath,path);
+    strcpy(savedPath,string);
     return savedPath;
 }
+/**
+ * @brief Frees the path strings allocated by AllocateHeapString.
+ *        The shellPaths variable points to an array of strings
+ *        that have been allocated memory on the stack.
+ *        This function should be called at the end of the program
+ *        to free the strings.
+ */
 void FreeShellPathMemory(){
     char* path;
     size_t i = 0;
@@ -92,7 +107,9 @@ void FreeShellPathMemory(){
 
 /**
  * @brief Sets the color and font style of command line output  
- *       printed after this function call.
+ *       printed after this function call. the BOLD_TEXT style
+ *       makes the selected color lighter.
+ * 
  * @param color - the color of the command line text
  * @param style - the font style of the command line text
  */
@@ -111,6 +128,16 @@ void SetTextColorAndStyle(const Color color, const Style style) {
 
     printf("%s", escapeSequence);
 }
+/**
+ * @brief Converts a string into the corresponding enum value.
+ *       This is a helper function for the HandleCommand()
+ *       function. If the string cannot be matched to any 
+ *       commands in the Command enum, then the enum value
+ *       UNKNOWN is returned.
+ * 
+ * @param command - the string that should be turned into a command enum.
+ * @return int - the corresponding enum value.
+ */
 int GetInputCommandCode(char command[]) {
     if ( strcmp(command, "exit") == 0 ) {
         return EXIT;
@@ -137,18 +164,34 @@ int GetInputCommandCode(char command[]) {
         return UNKNOWN;
     }
 }
+/**
+ * @brief Simple helper function that prints an additional arguments 
+ *       warning for the given command.
+ * 
+ * @param command - label for this warning.
+ */
 void PrintExtraArgsWarning(char* command) {
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("'%s' does not accept any arguments. The ", command);
     printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n\n");
 }
+/**
+ * @brief Simple helper function that prints a formatted error message.
+ * 
+ * @param errorMsg - error message to print.
+ */
 void PrintError(char* errorMsg){
     SetTextColorAndStyle(RED_COLOR, REGULAR_FONT);
     printf("(╯°`o°)╯ ┻━┻: %s\n\n", errorMsg);
 }
-void AddPath(const char* path){
-    printf("nothing here but a mouse...       ~~(__^·>\n\n");
-}
+/**
+ * @brief The function corresponding to the 'pwd' wash command.
+ *       This function prints the current working directory using
+ *       the getcwd() function. Uses the argument count to 
+ *       warn the user of argument usage on this function.
+ * 
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandPwd(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("pwd");
@@ -158,6 +201,16 @@ void CommandPwd(size_t argCount) {
     getcwd(cwd, 512);
     printf("%s\n\n", cwd);
 }
+/**
+ * @brief The function corresponding to the 'cd' wash command.
+ *       This function changes the current working directory
+ *       to the directory given as an argument. Only one argument
+ *       is accepted. An error is displayd if more than one 
+ *       argument is given or the directory cannot be found.
+ * 
+ * @param args - the array of arguments given for this command.
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandCd(char** args, size_t argCount) {
     int isSuccess = 0;
     // if no args, set cwd to HOME
@@ -182,6 +235,19 @@ void CommandCd(char** args, size_t argCount) {
         PrintError(strerror( errno ));
     }
 }
+/**
+ * @brief The function corresponding to the 'setpath' wash command.
+ *       This function sets the path wash will use when trying to
+ *       execute commands that don't match a built-in command.
+ *       An error is displayed if no arguments are provided.
+ * 
+ *       The path strings set by this function are allocated 
+ *       using malloc and need to be freed when they are no
+ *       longer needed.
+ * 
+ * @param args - the array of arguments given for this command.
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandSetPath(char** args, size_t argCount) {
 
     // error if no arguments
@@ -194,12 +260,19 @@ void CommandSetPath(char** args, size_t argCount) {
     FreeShellPathMemory();
     size_t i = 0;
     for (; i < argCount; i++) {
-        shellPaths[i] = AllocateShellPath(args[i]);
+        shellPaths[i] = AllocateHeapString(args[i]);
     }
 
     // set stop symbol for ShellPaths array
     shellPaths[i] = '\0';
 }
+/**
+ * @brief The function corresponding to the 'getpath' wash command.
+ *       This function prints the paths set by 'setpath'.
+ *       No arguments are needed for this command.
+ * 
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandGetPath(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("getpath");
@@ -216,6 +289,16 @@ void CommandGetPath(size_t argCount) {
     }
     printf("\n");
 }
+/**
+ * @brief The function corresponding to the 'ls' wash command.
+ *       This function prints out each directory entry in the 
+ *       current working directory. The printed entries are 
+ *       color coded by viewing their entry stats using the
+ *       dirent.h and sys/stat.h libraries. This function
+ *       does not accept any arguments. *       
+ * 
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandLs(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("ls");
@@ -227,8 +310,16 @@ void CommandLs(size_t argCount) {
 
     // print out each entry that is not a ".." or "."
     size_t count = 0; // see if there is anything here
+
+    /* opens the current working directory and returns a DIR */
     dir = opendir(cwd);
     while ((entry = readdir(dir)) != NULL) {
+        /* readdir is passed a directory opened by opendir and returns
+         * a dirent (directory entry) structure. the dirent has a d_name
+         * property that can be used to print the name of this entry.
+        */
+
+        // don't display the ".." and "." directory entries.
         if ( strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0){
             SetTextColorAndStyle(BLACK_COLOR, BOLD_FONT);
             printf(" > ");
@@ -239,6 +330,15 @@ void CommandLs(size_t argCount) {
             strcpy(entryPath, cwd);
             strcat(entryPath, "/");
             strcat(entryPath, entry->d_name);
+
+            /* stat accepts both a path string to a directory entry and 
+            * a stat structure that will be assigned the stats of the 
+            * given entry. With the stat structre, we can check if it is
+            * a directory using the S_ISDIR command. We can also check if
+            * the entry is executable by looking at the executable flag on 
+            * the stat's .st_mode property. The flag is viewed using the 
+            * provided bit mask S_IXUSR.
+            */
             struct stat entryStat;
             stat(entryPath, &entryStat);
             if ( S_ISDIR(entryStat.st_mode) ) {        // is folder
@@ -260,6 +360,15 @@ void CommandLs(size_t argCount) {
     printf("\n");
     closedir(dir);
 }
+/**
+ * @brief The function corresponding to the 'help' wash command.
+ *       This function prints the help page for wash shell. The
+ *       Help page coveres built-in commands and usage.
+ *       The 'help' command does not use any arguments.
+ *     
+ * 
+ * @param argCount - numer of arguments given for this command.
+ */
 void CommandHelp(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("ls");
@@ -325,6 +434,19 @@ void CommandHelp(size_t argCount) {
     // printf("<filepath>  - Redirects output to the specified file.\n");
     printf("\n");
 }
+/**
+ * @brief Tries to execute the given command with it's arguments.
+ *       
+ *       Called by CommandHandler() when the command given doesn't
+ *       mach one of the built-in commands. This function forks this
+ *       process and then tries to execute the command name by looking 
+ *       in each path set by the SetPath() function. The parent 
+ *       process waits for the child to finish before returning to 
+ *       the wash shell user prompt.
+ * 
+ * @param args - array of strings. The command name followed by arguments.
+ * @param argCount - numer of entries in the args array.
+ */
 void CommandExternal(char** args, size_t argCount) {
 
     int fork_id = fork();
@@ -368,11 +490,31 @@ void CommandExternal(char** args, size_t argCount) {
     }
     else
     {
+        /* wait waits for the child fork to finish we pass NULL
+        * as an argument and dont catch the return value because 
+        * we don't need to know the status of the child process 
+        * or its ID.
+        */
         wait(NULL);
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
     }
 }
 
+/**
+ * @brief CommandHandler accepts parsed user input and calls the 
+ *       appropriate function that handles the specific command.
+ *       The first entry in the passed array of strings is the name
+ *       of the command. If the command is not built-in, the
+ *       command and arguments get sent to CommandExternal().
+ * 
+ *       A integer is returned. If the user signals exit, then
+ *       -1 is returned, otherwise 0 (continue).
+ * 
+ * @param args - array of strings. The command name followed by arguments.
+ * @param argCount - numer of entries in the args array.
+ * @return int - return code for the main loop. 
+ *              -1 means stop, otherwise continue
+ */
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
     if ( userInputTokens[0] == NULL)
         return 0;
@@ -411,8 +553,20 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
     else if ( command == UNKNOWN ) {
         CommandExternal(userInputTokens, tokenCount);
     }
+
+    return 0;
 }
 
+/**
+ * @brief Entry point into this application. The main function 
+ *       handles prompting the user for input and then 
+ *       parsing that input into an array of strings that
+ *       are sent to the CommandHandler.
+ * 
+ * @param argc - command line args count.
+ * @param argv - command line arguments.
+ * @return int - application return code.
+ */
 int main(int argc, char const *argv[]) {
    
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
@@ -425,7 +579,7 @@ int main(int argc, char const *argv[]) {
     // initialize path
     char cwd[MAX_PATH_LENGTH];
     getcwd(cwd, MAX_PATH_LENGTH);
-    shellPaths[0] = AllocateShellPath(cwd);
+    shellPaths[0] = AllocateHeapString(cwd);
     shellPaths[1] = '\0'; // end of paths
 
     // Prompt for input & pass tokens to CommandHandler()
