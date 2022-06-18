@@ -16,7 +16,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pthread.h>
 #include <errno.h>
 #include <dirent.h>
 #include <sys/types.h>

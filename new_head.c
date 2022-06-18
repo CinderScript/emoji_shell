@@ -20,7 +20,7 @@
 
 void PrintHelp(){
     printf("new_head Help Page:\n");
-    printf("Prints the first 5 lines from a file or stdin to stdout. If no file is specified, ");
+    printf("Prints the first 5 lines from a file or stdin to stdout. If no file is specified, \n");
     printf("then the lines are read in by the console.\n\n");
     printf("Optional Arguments:\n");
     printf("    [-h]          displays this help file\n");
