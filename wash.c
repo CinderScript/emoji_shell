@@ -12,7 +12,6 @@
 const size_t MAX_INPUT_CHARS = 256;
 const size_t MAX_INPUT_ARGS = 20;
 
-char startingPath[512] = {0};
 char* shellPaths[50] = {0};
 
 /**
@@ -125,10 +124,14 @@ int GetInputCommandCode(char command[]) {
 void PrintExtraArgsWarning(char* command) {
     SetTextColor(YELLOW_COLOR);
     printf("'%s' does not accept any arguments. The ", command);
-    printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n");
+    printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n\n");
+}
+void PrintError(char* errorMsg){
+    SetTextColorAndStyle(RED_COLOR, REGULAR_FONT);
+    printf("(╯°`o°)╯ ┻━┻: %s\n\n", errorMsg);
 }
 void AddPath(const char* path){
-
+    printf("nothing here but a mouse        ~~(__^·>\n\n");
 }
 void CommandPwd(size_t argCount) {
     if (argCount > 0)
@@ -137,10 +140,10 @@ void CommandPwd(size_t argCount) {
     SetTextColor(BLUE_COLOR);
     char cwd[512];
     getcwd(cwd, 512);
-    printf("CWD: %s\n", cwd);
+    printf("%s\n\n", cwd);
 }
 void CommandCd(char** args, size_t argCount) {
-
+    int isSuccess = 0;
     // if no args, set cwd to HOME
     if (argCount == 0){
         chdir(getenv("HOME"));
@@ -154,29 +157,29 @@ void CommandCd(char** args, size_t argCount) {
             printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n");
         }
         
-        chdir(args[0]);
+        isSuccess = chdir(args[0]);
     }
 
     // check if the change was successful
-    if (errno != 0) {
+    if (isSuccess == -1) {
         SetTextColor(RED_COLOR);
-        printf("(╯°`o°)╯ ┻━┻: %s\n", strerror( errno ));
+        PrintError(strerror( errno ));
     }
 }
 void CommandSetPath(char** args, size_t argCount) {
 
-    // if no arguments, set starting path
+    // error if no arguments
     if (argCount == 0)
-    {
-        char* cwd = getcwd(cwd, 256);
-        shellPaths[0] = cwd;
-        shellPaths[1] = "\0";   // stop symbol for GetPath()
-    }
+        PrintError("'setpath' must include at least one path argument.");
     
-
-    for (size_t i = 0; i < argCount; i++) {
+    // save each argument
+    size_t i = 0;
+    for (; i < argCount; i++) {
         shellPaths[i] = args[i];
     }
+
+    // set stop symbol for ShellPaths array
+    shellPaths[i] = '\0';
 }
 void CommandGetPath(size_t argCount) {
     if (argCount > 0)
@@ -189,6 +192,7 @@ void CommandGetPath(size_t argCount) {
         printf("%s\n", current);
         i += 1;
     }
+    printf("\n");
 }
 void CommandLs(size_t argCount) {
     if (argCount > 0)
@@ -200,9 +204,11 @@ void CommandLs(size_t argCount) {
     getcwd(cwd, 512);
 
     // print out each entry that is not a ".." or "."
+    size_t count = 0; // see if there is anything here
     dir = opendir(cwd);
     while ((entry = readdir(dir)) != NULL) {
         if ( strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0){
+            count += 1;
             //print out entry type using specific color
             char entryPath[512] = {0};
             strcpy(entryPath, cwd);
@@ -222,6 +228,11 @@ void CommandLs(size_t argCount) {
             printf(" %s\n", entry->d_name);
         }
     }
+    if (count == 0) {
+        SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
+        printf("nothing but a mouse here        ~~(__^·>\n");
+    }
+    printf("\n");
     closedir(dir);
 }
 void CommandHelp(size_t argCount) {
@@ -268,9 +279,11 @@ void CommandHelp(size_t argCount) {
     printf("  help");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("\n    - Displays this help page.\n");
+
+    printf("\n");
 }
 void CommandExternal(const char* command, char** tokens, size_t argCount) {
-    printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n\n");
+    printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n");
 }
 
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
@@ -325,15 +338,15 @@ int main(int argc, char const *argv[]) {
     // initialize path
     char cwd[512];
     getcwd(cwd, 512);
-    strcpy(startingPath, cwd);
     shellPaths[0] = cwd;
+    shellPaths[1] = '\0'; // end of paths
 
     // Prompt for input & pass tokens to CommandHandler()
     // until CommandHandler() returns -1 (exit)
     int commandResult = 0;
     do {
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
-        printf("\n ʕ•ᴥ•ʔ  |> ");
+        printf(" ʕ•ᴥ•ʔ  |> ");
         SetTextColorAndStyle(CYAN_COLOR, REGULAR_FONT);
 
         char userInput[256] = {0};
