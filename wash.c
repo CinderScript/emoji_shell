@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 //#include <stdbool.h>
 
 #define MAX_INPUT_CHARS 256
@@ -319,10 +320,35 @@ void CommandHelp(size_t argCount) {
     printf("<filepath>  - Redirects output to the specified file.\n");
     printf("\n");
 }
-void CommandExternal(const char* command, char** tokens, size_t argCount) {
-    SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
-    printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n");
+void CommandExternal(char** args, size_t argCount) {
 
+    int fork_id = fork();
+
+    if (fork_id < 0)
+    {
+        PrintError("Was not able to create a new process.");
+        return;
+    }
+    else if (fork_id == 0) // I'm the child
+    {
+        // run the given program
+        SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
+        printf("running  %s ", args[0]);
+        printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>");
+        SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
+        printf("\n");
+
+        int result = execvp(args[0], args);
+        printf("%d\n", result);
+    }
+    else
+    {
+        int child_id = wait(NULL);        
+        printf("ended\n");
+        struct timespec end_time;
+        timespec_get(&end_time, TIME_UTC);
+        fflush(stdout);
+    }
 }
 
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
@@ -361,7 +387,7 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
         CommandHelp(argCount);
     }
     else if ( command == UNKNOWN ) {
-        CommandExternal(userInputTokens[0], args, argCount);
+        CommandExternal(userInputTokens, tokenCount);
     }
 }
 
@@ -391,9 +417,18 @@ int main(int argc, char const *argv[]) {
         char userInput[MAX_INPUT_CHARS] = {0};
         size_t bufferSize = MAX_INPUT_CHARS;
         fgets(userInput, bufferSize, stdin);
-        
+
+        // check if ctrl-d was pressed and stop endless loop bug
+        if (strlen(userInput) == 0)
+        {
+            // no return was entered, so print one
+            printf("\n");
+            return 0;       // EARLY OUT!
+        }
+
         // remove the newline at the end
         userInput[strlen(userInput)-1] = '\0';
+
 
         // get the first token (the command)
         char* token = strtok(userInput, " ");
