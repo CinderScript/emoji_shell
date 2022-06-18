@@ -22,7 +22,7 @@ Commands:
     - sets the path where wash will look for executable programs and commands
     - required argument: at least one path must be given
   getpath
-    - prints all the directories in the PATH variable set by 'getpath'
+    - prints all the directories in the PATH variable set by 'setpath'
   help
     - displays a help page with this readme's contents.
 
