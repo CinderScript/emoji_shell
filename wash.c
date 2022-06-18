@@ -12,7 +12,8 @@
 const size_t MAX_INPUT_CHARS = 256;
 const size_t MAX_INPUT_ARGS = 20;
 
-char* shell_path[50] = {0};
+char startingPath[512] = {0};
+char* shellPaths[50] = {0};
 
 /**
  * @brief Shell color codes for output text color.
@@ -63,7 +64,7 @@ typedef enum Command {
  *       after this function call.
  * @param color - the color of the command line text
  */
-void SetTextColor(const Color color){
+void SetTextColor(const Color color) {
     char colorCode[3];
     sprintf(colorCode, "%d", color);
 
@@ -80,7 +81,7 @@ void SetTextColor(const Color color){
  * @param color - the color of the command line text
  * @param style - the font style of the command line text
  */
-void SetTextColorAndStyle(const Color color, const Style style){
+void SetTextColorAndStyle(const Color color, const Style style) {
     char colorCode[3];
     char styleCode[3];
     sprintf(colorCode, "%d", color);
@@ -95,8 +96,7 @@ void SetTextColorAndStyle(const Color color, const Style style){
 
     printf("%s", escapeSequence);
 }
-int GetInputCommandCode(char command[]){
-
+int GetInputCommandCode(char command[]) {
     if ( strcmp(command, "exit") == 0 ) {
         return EXIT;
     }
@@ -122,22 +122,24 @@ int GetInputCommandCode(char command[]){
         return UNKNOWN;
     }
 }
+void PrintExtraArgsWarning(char* command) {
+    SetTextColor(YELLOW_COLOR);
+    printf("'%s' does not accept any arguments. The ", command);
+    printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n");
+}
 void AddPath(const char* path){
 
 }
 void CommandPwd(size_t argCount) {
-    if (argCount > 0) {
-        SetTextColor(YELLOW_COLOR);
-        printf("'pwd' does not accept any arguments. The ");
-        printf("additional arguments were ignored.\n");
-    }
+    if (argCount > 0)
+        PrintExtraArgsWarning("pwd");
 
     SetTextColor(BLUE_COLOR);
     char cwd[512];
     getcwd(cwd, 512);
-    printf("CWD: %s\n\n", cwd);
+    printf("CWD: %s\n", cwd);
 }
-void CommandCd(char** args, size_t argCount){
+void CommandCd(char** args, size_t argCount) {
 
     // if no args, set cwd to HOME
     if (argCount == 0){
@@ -149,7 +151,7 @@ void CommandCd(char** args, size_t argCount){
         if (argCount > 1) {
             SetTextColor(YELLOW_COLOR);
             printf("'cd' does not accept more than one argument. The ");
-            printf("additional arguments were ignored.\n");
+            printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n");
         }
         
         chdir(args[0]);
@@ -158,44 +160,39 @@ void CommandCd(char** args, size_t argCount){
     // check if the change was successful
     if (errno != 0) {
         SetTextColor(RED_COLOR);
-        printf("(╯°`o°)╯ ┻━┻: %s\n\n", strerror( errno ));
+        printf("(╯°`o°)╯ ┻━┻: %s\n", strerror( errno ));
     }
 }
 void CommandSetPath(char** args, size_t argCount) {
+
+    // if no arguments, set starting path
     if (argCount == 0)
     {
         char* cwd = getcwd(cwd, 256);
-        shell_path[0] = cwd;
-        shell_path[1] = "\0";   // stop symbol for GetPath()
+        shellPaths[0] = cwd;
+        shellPaths[1] = "\0";   // stop symbol for GetPath()
     }
     
 
     for (size_t i = 0; i < argCount; i++) {
-        shell_path[i] = args[i];
+        shellPaths[i] = args[i];
     }
-    
 }
 void CommandGetPath(size_t argCount) {
-    if (argCount > 0) {
-        SetTextColor(YELLOW_COLOR);
-        printf("'getpath' does not accept any arguments. The ");
-        printf("additional arguments were ignored.\n");
-    }
+    if (argCount > 0)
+        PrintExtraArgsWarning("getpath");
 
     SetTextColor(BLUE_COLOR);
     size_t i = 0;
     char* current;
-    while ( (current = shell_path[i]) != NULL ) {
+    while ( (current = shellPaths[i]) != NULL ) {
         printf("%s\n", current);
         i += 1;
     }
 }
-void CommandLs(size_t argCount){
-    if (argCount > 0) {
-        SetTextColor(YELLOW_COLOR);
-        printf("'help' does not accept any arguments. The ");
-        printf("additional arguments were ignored.\n");
-    }
+void CommandLs(size_t argCount) {
+    if (argCount > 0)
+        PrintExtraArgsWarning("ls");
 
     DIR *dir;
     struct dirent *entry;
@@ -225,15 +222,11 @@ void CommandLs(size_t argCount){
             printf(" %s\n", entry->d_name);
         }
     }
-    printf("\n");    
     closedir(dir);
 }
 void CommandHelp(size_t argCount) {
-    if (argCount > 0) {
-        SetTextColor(YELLOW_COLOR);
-        printf("'help' does not accept any arguments. The ");
-        printf("additional arguments were ignored.\n");
-    }
+    if (argCount > 0)
+        PrintExtraArgsWarning("ls");
 
     printf("\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
@@ -274,9 +267,9 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  help");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("\n    - Displays this help page.\n\n");
+    printf("\n    - Displays this help page.\n");
 }
-void CommandExternal(const char* command, char** tokens, size_t argCount){
+void CommandExternal(const char* command, char** tokens, size_t argCount) {
     printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n\n");
 }
 
@@ -328,20 +321,19 @@ int main(int argc, char const *argv[]) {
     printf("\n");
     printf("Welcome to WAsh - the Washington Shell.\n");
     printf("Enter 'help' to see a list of available commands.\n");
-    printf("\n");
 
     // initialize path
     char cwd[512];
     getcwd(cwd, 512);
-    shell_path[0] = cwd;
-    shell_path[1] = "test/path";
+    strcpy(startingPath, cwd);
+    shellPaths[0] = cwd;
 
     // Prompt for input & pass tokens to CommandHandler()
     // until CommandHandler() returns -1 (exit)
     int commandResult = 0;
     do {
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
-        printf(" ʕ•ᴥ•ʔ  |> ");
+        printf("\n ʕ•ᴥ•ʔ  |> ");
         SetTextColorAndStyle(CYAN_COLOR, REGULAR_FONT);
 
         char userInput[256] = {0};
