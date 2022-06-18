@@ -336,18 +336,23 @@ void CommandExternal(char** args, size_t argCount) {
         printf("running  %s ", args[0]);
         printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>");
         SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
-        printf("\n");
+        printf("\n"); // required after for triggering color in child process
 
         int result = execvp(args[0], args);
-        printf("%d\n", result);
+
+        if (result == -1)
+        {
+            // newline isn't needed
+            PrintError("Was not able to run the command. Does it exist?");
+            fflush(stdout); // make sure this prints before parent prints
+            exit(1);        // child is finished
+        }
+        exit(0); // child is finished
     }
     else
     {
-        int child_id = wait(NULL);        
-        printf("ended\n");
-        struct timespec end_time;
-        timespec_get(&end_time, TIME_UTC);
-        fflush(stdout);
+        wait(NULL);
+        SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
     }
 }
 
