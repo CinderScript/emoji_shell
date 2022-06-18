@@ -7,7 +7,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
+//#include <stdbool.h>
 
 #define MAX_INPUT_CHARS 256
 #define MAX_INPUT_ARGS 20
@@ -252,8 +252,14 @@ void CommandHelp(size_t argCount) {
 
     printf("\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("The following commands are available:\n");
-
+    printf("-- WAsh Help Info --\n");
+    printf("Washington Shell accepts several built in commands and a redirection\n");
+    printf("operator. When passing arguments to built-in commands, any extra arguments\n");
+    printf("given will be ignored (with a warning). Optional arguments are marked with\n");
+    printf("brackets, [arg], and required arguments are marked with carrots, <arg>.\n");
+    printf("In this documentation, an ellipsis indicates a list of arguments can be\n");
+    printf("used.\n");
+    printf("Commands:\n");
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  exit");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
@@ -290,7 +296,13 @@ void CommandHelp(size_t argCount) {
     printf("  help");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("\n    - Displays this help page.\n");
+    printf("\n");
 
+    printf("Redirection Operator:\n");
+    SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
+    printf("  > ");
+    SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
+    printf("<filepath>  - Redirects output to the specified file.\n");
     printf("\n");
 }
 void CommandExternal(const char* command, char** tokens, size_t argCount) {
