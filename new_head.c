@@ -55,33 +55,34 @@ bool IsInteger(const char* arg) {
 }
 
 void PrintLinesFromFile(const char* fileName, const size_t printCount) {
-        char line[1024];
-        char* result;
+    char line[1024];
+    char* result;
 
-        // CREATE THREAD FILE FOR WRITING VALUES
-        FILE* file = fopen(fileName,"r");
-        if ( file == NULL ) {        
-            fprintf(stderr, "Error opening file '%s': %s\n", fileName, strerror( errno ));
-            fprintf(stderr, "Exiting...\n");
-            exit(1);                       // EARLY OUT!
+    // CREATE THREAD FILE FOR WRITING VALUES
+    FILE* file = fopen(fileName,"r");
+    if ( file == NULL ) {        
+        fprintf(stderr, "Error opening file '%s': %s\n", fileName, strerror( errno ));
+        fprintf(stderr, "Exiting...\n");
+        exit(1);                       // EARLY OUT!
+    }
+
+    size_t lineCount = 0;
+    do {
+        lineCount += 1;
+        if (lineCount > printCount) {
+            return;                  // EARLY OUT!
         }
+        
+        result = fgets(line, 512, file);
+        if ( result != NULL) {
+            printf("%s", line);
+        }
+        
+    } while ( result != NULL );
 
-        size_t lineCount = 0;
-        do {
-            lineCount += 1;
-            if (lineCount > printCount) {
-                return;                  // EARLY OUT!
-            }
-            
-            result = fgets(line, 512, file);
-            if ( result != NULL) {
-                printf("%s", line);
-            }
-            
-        } while ( result != NULL );
-
-        // got to the end of the file
-        printf("\n*** EOF ***");
+    // got to the end of the file
+    fclose(file);
+    printf("\n*** EOF ***");
 }
 
 int main(int argc, char const *argv[])
