@@ -20,17 +20,20 @@
 
 void PrintHelp(){
     printf("new_head Help Page:\n");
-    printf("Prints the first 5 lines from a file or stdin to stdout.\n\n");
+    printf("Prints the first 5 lines from a file or stdin to stdout. If no file is specified, ");
+    printf("then the lines are read in by the console.\n\n");
     printf("Optional Arguments:\n");
     printf("    [-h]          displays this help file\n");
     printf("    [-n N]        prints the first N lines instead of 5.\n");
-    printf("    [-n N]        An EOF message is printed if new_head runs out of lines to print.\n");
-    printf("    [file.txt]    the source file to read from. If no file is specified,\n");
-    printf("                  then lines are read from standard console input.\n\n");
+    printf("                    - An EOF message is printed if new_head runs out of\n");
+    printf("                      lines to print.\n");
+    printf("    [file.txt]    the source file to read from.\n");
+    printf("                    - If no file is specified, then lines are read from \n");
+    printf("                      standard console input.\n\n");
     
     printf("Usage:\n");
     printf("  > new_head -h                      Prints this help page.\n");
-    printf("  > new_head -n 7                    Prints the first 7 lines of stdio\n");
+    printf("  > new_head -n                      Prints the first 5 lines from stdin\n");
     printf("  > new_head myfile.txt              Prints the first 5 lines from myfile.txt\n");
     printf("  > new_head -n 7 myfile.txt         Prints the first 7 lines from myfile.txt\n\n");
 }
