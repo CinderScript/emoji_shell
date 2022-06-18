@@ -1,3 +1,17 @@
+/**
+ * @file        wash.c
+ * @author      Gregory Maynard
+ * 
+ * @brief       Assignment   - Wash Shell (linux shell)
+ *             Course       - CSC3350 Operating Systems Programming
+ * 
+ *             This is a simple linux shell program that can run 
+ *             several built-in commands as well as execute
+ *             external programs.
+ * 
+ * @date       2022-16-09
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -133,7 +147,7 @@ void PrintError(char* errorMsg){
     printf("(╯°`o°)╯ ┻━┻: %s\n\n", errorMsg);
 }
 void AddPath(const char* path){
-    printf("nothing here but a mouse        ~~(__^·>\n\n");
+    printf("nothing here but a mouse...       ~~(__^·>\n\n");
 }
 void CommandPwd(size_t argCount) {
     if (argCount > 0)
@@ -306,7 +320,9 @@ void CommandHelp(size_t argCount) {
     printf("\n");
 }
 void CommandExternal(const char* command, char** tokens, size_t argCount) {
+    SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
     printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n");
+
 }
 
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
