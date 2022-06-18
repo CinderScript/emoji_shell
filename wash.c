@@ -11,7 +11,7 @@
 
 #define MAX_INPUT_CHARS 256
 #define MAX_INPUT_ARGS 20
-#define MAX_PATH_LENGTH 512
+#define MAX_PATH_LENGTH 2048
 
 char* shellPaths[50] = {0};
 
@@ -23,6 +23,8 @@ char* shellPaths[50] = {0};
  */
 typedef enum Color { 
     DEFAULT_COLOR = 0, 
+    BLACK_COLOR = 30,
+    LIGHT_GRAY = 37,
     RED_COLOR = 31,
     YELLOW_COLOR = 33, 
     GREEN_COLOR = 32, 
@@ -59,22 +61,21 @@ typedef enum Command {
     HELP = 7
 } Command;
 
-/**
- * @brief Sets the color of command line output printed 
- *       after this function call.
- * @param color - the color of the command line text
- */
-void SetTextColor(const Color color) {
-    char colorCode[3];
-    sprintf(colorCode, "%d", color);
-
-    char escapeSequence[5] = {0};
-    strcat(escapeSequence, "\033[");
-    strcat(escapeSequence, colorCode);
-    strcat(escapeSequence, "m");
-
-    printf("%s", escapeSequence);
+char* AllocateShellPath(const char* path){
+    size_t charCount = strlen(path) + 1; // plus '\0'
+    char* savedPath = malloc(charCount * sizeof(char));
+    strcpy(savedPath,path);
+    return savedPath;
 }
+void FreeShellPathMemory(){
+    char* path;
+    size_t i = 0;
+    while ( (path = shellPaths[i]) != NULL ) {
+        free(path);
+        i += 1;
+    }
+}
+
 /**
  * @brief Sets the color and font style of command line output  
  *       printed after this function call.
@@ -123,7 +124,7 @@ int GetInputCommandCode(char command[]) {
     }
 }
 void PrintExtraArgsWarning(char* command) {
-    SetTextColor(YELLOW_COLOR);
+    SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("'%s' does not accept any arguments. The ", command);
     printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n\n");
 }
@@ -138,7 +139,7 @@ void CommandPwd(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("pwd");
 
-    SetTextColor(BLUE_COLOR);
+    SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
     char cwd[512];
     getcwd(cwd, 512);
     printf("%s\n\n", cwd);
@@ -153,7 +154,7 @@ void CommandCd(char** args, size_t argCount) {
     // else if there is at least 1 arg, cd to this dir
     else {
         if (argCount > 1) {
-            SetTextColor(YELLOW_COLOR);
+            SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
             printf("'cd' does not accept more than one argument. The ");
             printf("additional arguments were ignored. ¯\\_(`-`)_/¯ \n");
         }
@@ -163,20 +164,23 @@ void CommandCd(char** args, size_t argCount) {
 
     // check if the change was successful
     if (isSuccess == -1) {
-        SetTextColor(RED_COLOR);
+        SetTextColorAndStyle(RED_COLOR, REGULAR_FONT);
         PrintError(strerror( errno ));
     }
 }
 void CommandSetPath(char** args, size_t argCount) {
 
     // error if no arguments
-    if (argCount == 0)
+    if (argCount == 0) {
         PrintError("'setpath' must include at least one path argument.");
+        return;
+    }
     
-    // save each argument
+    // save each argument in the heap
+    FreeShellPathMemory();
     size_t i = 0;
     for (; i < argCount; i++) {
-        shellPaths[i] = args[i];
+        shellPaths[i] = AllocateShellPath(args[i]);
     }
 
     // set stop symbol for ShellPaths array
@@ -186,10 +190,13 @@ void CommandGetPath(size_t argCount) {
     if (argCount > 0)
         PrintExtraArgsWarning("getpath");
 
-    SetTextColor(BLUE_COLOR);
+    // print each path
     size_t i = 0;
     char* current;
     while ( (current = shellPaths[i]) != NULL ) {
+        SetTextColorAndStyle(BLACK_COLOR, BOLD_FONT);
+        printf(" > ");
+        SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
         printf("%s\n", current);
         i += 1;
     }
@@ -202,13 +209,16 @@ void CommandLs(size_t argCount) {
     DIR *dir;
     struct dirent *entry;
     char cwd[MAX_PATH_LENGTH];
-    getcwd(cwd, MAX_PATH_LENGTH);
+    char* result = getcwd(cwd, MAX_PATH_LENGTH);
 
     // print out each entry that is not a ".." or "."
     size_t count = 0; // see if there is anything here
     dir = opendir(cwd);
     while ((entry = readdir(dir)) != NULL) {
         if ( strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0){
+            SetTextColorAndStyle(BLACK_COLOR, BOLD_FONT);
+            printf(" > ");
+
             count += 1;
             //print out entry type using specific color
             char entryPath[MAX_PATH_LENGTH] = {0};
@@ -339,7 +349,7 @@ int main(int argc, char const *argv[]) {
     // initialize path
     char cwd[MAX_PATH_LENGTH];
     getcwd(cwd, MAX_PATH_LENGTH);
-    shellPaths[0] = cwd;
+    shellPaths[0] = AllocateShellPath(cwd);
     shellPaths[1] = '\0'; // end of paths
 
     // Prompt for input & pass tokens to CommandHandler()
@@ -372,7 +382,10 @@ int main(int argc, char const *argv[]) {
 
         // process command entered
         commandResult = CommandHandler(userInputTokens, count);
-     } while ( commandResult != -1 );
+    } while ( commandResult != -1 );
+
+    // free path strings in shellPaths
+    FreeShellPathMemory();
 
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
     printf("\n ----<-- END SHELL ---<----{--(@\n\n");
