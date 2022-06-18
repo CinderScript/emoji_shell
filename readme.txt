@@ -13,7 +13,7 @@ Commands:
   ls
     - prints the contents of the current directory
   pwd
-    - prints the path to the current working directory
+    - prints the path of the current working directory
   cd [dir]
     - changes the current working directory to the given directory.
     - optional argument: if no argument is given, environment HOME is

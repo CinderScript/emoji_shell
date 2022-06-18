@@ -288,7 +288,7 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  pwd");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("\n    - Prints the path to the current working directory.\n");
+    printf("\n    - Prints the path of the current working directory.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  cd");
