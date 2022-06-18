@@ -260,13 +260,11 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("   - displays this help page.\n\n");
 }
-void CommandExternal(const char* command, char* tokens){
-    printf("unknown command entered: %s\n", command);
-    printf("Args: ");
+void CommandExternal(const char* command, char** tokens, size_t argCount){
+    printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n\n");
 }
 
 int CommandHandler(char** userInputTokens, size_t tokenCount) {
-
     if ( userInputTokens[0] == NULL)
         return 0;
     
@@ -302,14 +300,14 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
         CommandHelp(argCount);
     }
     else if ( command == UNKNOWN ) {
-
+        CommandExternal(userInputTokens[0], args, argCount);
     }
 }
 
 int main(int argc, char const *argv[]) {
    
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
-    printf("\n ---->-- WASH SHELL -------{--(@\n\n");
+    printf("\n ----<-- WASH SHELL -------{--(@\n\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("\n");
     printf("Welcome to WAsh - the Washington Shell.\n");
@@ -355,7 +353,7 @@ int main(int argc, char const *argv[]) {
      } while ( commandResult != -1 );
 
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
-    printf("\n .¸.·´¯`· END ·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n");
+    printf("\n ----<-- END SHELL ---<----{--(@\n\n");
     SetTextColorAndStyle(DEFAULT_COLOR, REGULAR_FONT);
     return 0;
 }
