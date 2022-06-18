@@ -78,7 +78,7 @@ void PrintLinesFromFile(const char* filepath, const size_t printCount) {
     FILE* file = fopen(filepath,"r");
     if ( file == NULL ) {        
         fprintf(stderr, "Error opening file '%s': %s\n", filepath, strerror( errno ));
-        fprintf(stderr, "Exiting...\n");
+        fprintf(stderr, "Exiting...\n\n");
         exit(1);                       // EARLY OUT!
     }
 
@@ -98,7 +98,7 @@ void PrintLinesFromFile(const char* filepath, const size_t printCount) {
 
     // got to the end of the file
     fclose(file);
-    printf("\n*** EOF ***");
+    printf("\n*** EOF ***\n");
 }
 
 /**
@@ -127,7 +127,7 @@ int main(int argc, char const *argv[])
         }
     }
 
-    // early arg count check
+    // ** CHECK IF THERE ARE TOO MANY ARGS
     if ( argc > 4 ) {
         printf("Hogwash!\n");
         printf("You entered too many arguments. I'm not even going to look at them!\n\n");
@@ -135,38 +135,58 @@ int main(int argc, char const *argv[])
     }
     
     // collect arguments
+    bool nFlagProcessed = false;
     char* arg;
     for (size_t i = 1; i < argc; i++) // skip first entry
     {
+         // ** CHECK IF -h IS THE ONLY FLAG
         if ( strcmp(argv[i], "-h") == 0 ) {
             printf("What in tarNATion?!\n");
-            printf("The -h argument cannot be used with other arguments.\n\n");
+            printf("The -h argument cannot be used with other arguments!\n\n");
             return 2;       // EARLY OUT!
         }
         else if ( strcmp(argv[i], "-n") == 0) {
+            // ** CHECK IF THERE IS MORE THAN ONE -n FLAG
+            if (nFlagProcessed) {
+                    printf("Holy fruit cake, Batman!\n");
+                    printf("The -n argument was specified more than once!\n\n");
+                    return 3;       // EARLY OUT!
+            }
+            
+            nFlagProcessed = true;
+
             // the next argument should be an integer
             if ( i+1 < argc ) {
                 if (IsInteger(argv[i+1])) {
                     nArg = atoi(argv[i+1]);
                     i += 1;                 // advance the counter past arg 'N'
                 }
-                else { // expected an integer value
+                // ** CHECK IF WE WERE GIVEN AN INTEGER
+                else { 
                     printf("Piffel Poffel!\n");
-                    printf("The -n argument was specified but was not given an integer value.\n\n");
-                    return 3;       // EARLY OUT!
+                    printf("The -n argument was specified but was not given a positive integer value!\n\n");
+                    return 4;       // EARLY OUT!
+                }
+
+                // ** CHECK IF THE N VALUE IS TOO SMALL
+                if ( nArg < 1 ) {
+                    printf("Snagglepuss: Heavens to Murgatroyd!\n");
+                    printf("The -n argument must be an integer greater than 0!\n\n");
+                    return 5;       // EARLY OUT!
                 }
             }
+            // ** CHECK IF THERE IS AN ARGUMENT AFTER -n
             else { // there were no more args
                 printf("Fiddle Sticks!\n");
-                printf("The -n argument was specified but was not given.\n\n");
-                return 4;       // EARLY OUT!
+                printf("The -n argument was specified but was not given!\n\n");
+                return 6;       // EARLY OUT!
             }
         }
         else { // should be a filename
             if ( path != NULL ) {
                 printf("You done goofed!\n");
                 printf("Something is wrong with your arguments. Have you entered two filenames?\n\n");
-                return 5;
+                return 7;
             }
 
             path = argv[i];
