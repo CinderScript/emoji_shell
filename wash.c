@@ -9,8 +9,9 @@
 #include <sys/stat.h>
 
 
-const size_t MAX_INPUT_CHARS = 256;
-const size_t MAX_INPUT_ARGS = 20;
+#define MAX_INPUT_CHARS 256
+#define MAX_INPUT_ARGS 20
+#define MAX_PATH_LENGTH 512
 
 char* shellPaths[50] = {0};
 
@@ -200,8 +201,8 @@ void CommandLs(size_t argCount) {
 
     DIR *dir;
     struct dirent *entry;
-    char cwd[512];
-    getcwd(cwd, 512);
+    char cwd[MAX_PATH_LENGTH];
+    getcwd(cwd, MAX_PATH_LENGTH);
 
     // print out each entry that is not a ".." or "."
     size_t count = 0; // see if there is anything here
@@ -210,7 +211,7 @@ void CommandLs(size_t argCount) {
         if ( strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0){
             count += 1;
             //print out entry type using specific color
-            char entryPath[512] = {0};
+            char entryPath[MAX_PATH_LENGTH] = {0};
             strcpy(entryPath, cwd);
             strcat(entryPath, "/");
             strcat(entryPath, entry->d_name);
@@ -336,8 +337,8 @@ int main(int argc, char const *argv[]) {
     printf("Enter 'help' to see a list of available commands.\n");
 
     // initialize path
-    char cwd[512];
-    getcwd(cwd, 512);
+    char cwd[MAX_PATH_LENGTH];
+    getcwd(cwd, MAX_PATH_LENGTH);
     shellPaths[0] = cwd;
     shellPaths[1] = '\0'; // end of paths
 
@@ -349,7 +350,7 @@ int main(int argc, char const *argv[]) {
         printf(" ʕ•ᴥ•ʔ  |> ");
         SetTextColorAndStyle(CYAN_COLOR, REGULAR_FONT);
 
-        char userInput[256] = {0};
+        char userInput[MAX_INPUT_CHARS] = {0};
         size_t bufferSize = MAX_INPUT_CHARS;
         fgets(userInput, bufferSize, stdin);
         
@@ -361,7 +362,7 @@ int main(int argc, char const *argv[]) {
 
         // collect all tokens in array of strings
         size_t count = 0;
-        char* userInputTokens[20] = {0};
+        char* userInputTokens[MAX_INPUT_ARGS] = {0};
         while ( token != NULL ) {
             userInputTokens[count] = token;
             count += 1;
