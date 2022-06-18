@@ -1,4 +1,4 @@
-WASHINGTON SHELL readme
+WASHINGTON SHELL README
 
 Washington Shell accepts several built in commands and a redirection
 operator. When passing arguments to built-in commands, any extra arguments
