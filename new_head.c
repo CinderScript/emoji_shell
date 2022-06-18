@@ -18,6 +18,11 @@
 #include <ctype.h>
 #include <errno.h>
 
+/**
+ * @brief The function that prints new_head's help page to the 
+ *       console. The Help page coveres built-in commands and 
+ *       usage. The 'help' command does not use any arguments.
+ */
 void PrintHelp(){
     printf("new_head Help Page:\n");
     printf("Prints the first 5 lines from a file or stdin to stdout. If no file is specified, \n");
@@ -44,10 +49,11 @@ void PrintHelp(){
  *          string are digits, otherwise returns false.
  * 
  * @param arg - the string to test.
- * @return true - string is an integer.
- * @return false - string is not an integer.
+ * @return true/false - is the string an integer?
  */
 bool IsInteger(const char* arg) {
+    // check every char in this string   
+    // and make sure each is a digit.
     for (size_t i = 0; i < strlen(arg); i++)
     {
         if (!isdigit(arg[i])){
@@ -57,14 +63,21 @@ bool IsInteger(const char* arg) {
     return true;
 }
 
-void PrintLinesFromFile(const char* fileName, const size_t printCount) {
+/**
+ * @brief Prints the first N lines in the file given the
+ *       filename to the console.
+ * 
+ * @param fileName - path of the file to read from.
+ * @param printCount - number of lines to read starting at the top.
+ */
+void PrintLinesFromFile(const char* filepath, const size_t printCount) {
     char line[1024];
     char* result;
 
     // CREATE THREAD FILE FOR WRITING VALUES
-    FILE* file = fopen(fileName,"r");
+    FILE* file = fopen(filepath,"r");
     if ( file == NULL ) {        
-        fprintf(stderr, "Error opening file '%s': %s\n", fileName, strerror( errno ));
+        fprintf(stderr, "Error opening file '%s': %s\n", filepath, strerror( errno ));
         fprintf(stderr, "Exiting...\n");
         exit(1);                       // EARLY OUT!
     }
@@ -88,6 +101,18 @@ void PrintLinesFromFile(const char* fileName, const size_t printCount) {
     printf("\n*** EOF ***");
 }
 
+/**
+ * @brief Entry point into this application. The main function
+ *       does error checking on the arguments given and then 
+ *       desides to either let the PrintLinesFromFile()
+ *       function print lines to the console, or, if no file
+ *       is specified, prompts the user for the input of 
+ *       those lines.
+ * 
+ * @param argc - command line args count.
+ * @param argv - command line arguments.
+ * @return int - application return code.
+ */
 int main(int argc, char const *argv[])
 {
     size_t nArg = 5; // default lines to print
