@@ -4,12 +4,15 @@
 #include <string.h>
 #include <pthread.h>
 #include <errno.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 
 const size_t MAX_INPUT_CHARS = 256;
 const size_t MAX_INPUT_ARGS = 20;
 
-char* shell_path[20] = {0};
+char* shell_path[50] = {0};
 
 /**
  * @brief Shell color codes for output text color.
@@ -51,7 +54,8 @@ typedef enum Command {
     CD = 3,
     SETPATH = 4,
     GETPATH = 5,
-    HELP = 6
+    LS = 6,
+    HELP = 7
 } Command;
 
 /**
@@ -108,6 +112,9 @@ int GetInputCommandCode(char command[]){
     else if ( strcmp(command, "getpath") == 0 ) {
         return GETPATH;
     }
+    else if ( strcmp(command, "ls") == 0 ) {
+        return LS;
+    }
     else if ( strcmp(command, "help") == 0 ) {
         return HELP;
     }
@@ -126,8 +133,8 @@ void CommandPwd(size_t argCount) {
     }
 
     SetTextColor(BLUE_COLOR);
-    char* cwd;
-    cwd = getcwd(cwd, 256);
+    char cwd[512];
+    getcwd(cwd, 512);
     printf("CWD: %s\n\n", cwd);
 }
 void CommandCd(char** args, size_t argCount){
@@ -155,7 +162,18 @@ void CommandCd(char** args, size_t argCount){
     }
 }
 void CommandSetPath(char** args, size_t argCount) {
+    if (argCount == 0)
+    {
+        char* cwd = getcwd(cwd, 256);
+        shell_path[0] = cwd;
+        shell_path[1] = "\0";   // stop symbol for GetPath()
+    }
+    
 
+    for (size_t i = 0; i < argCount; i++) {
+        shell_path[i] = args[i];
+    }
+    
 }
 void CommandGetPath(size_t argCount) {
     if (argCount > 0) {
@@ -171,6 +189,35 @@ void CommandGetPath(size_t argCount) {
         printf("%s\n", current);
         i += 1;
     }
+}
+void CommandLs(size_t argCount){
+    DIR *dir;
+    struct dirent *entry;
+    char cwd[512];
+    getcwd(cwd, 512);
+
+    // print out each entry that is not a ".." or "."
+    dir = opendir(cwd);
+    while ((entry = readdir(dir)) != NULL) {
+        if ( strcmp(entry->d_name, "..") != 0 && strcmp(entry->d_name, ".") != 0){
+            //print out entry type using specific color
+            char entryPath[512] = {0};
+            strcpy(entryPath, cwd);
+            strcat(entryPath, "/");
+            strcat(entryPath, entry->d_name);
+            struct stat entryStat;
+            stat(entryPath, &entryStat);
+            if ( S_ISREG(entryStat.st_mode) ) { // is folder
+                SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
+            }
+            else {
+                SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
+            }
+            printf("%s\n", entry->d_name);
+        }
+    }
+    printf("\n");    
+    closedir(dir);
 }
 void CommandHelp(size_t argCount) {
     if (argCount > 0) {
@@ -245,6 +292,9 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
     else if ( command == GETPATH ) {
         CommandGetPath(argCount);
     }
+    else if ( command == LS ) {
+        CommandLs(argCount);
+    }
     else if ( command == HELP ) {
         CommandHelp(argCount);
     }
@@ -259,13 +309,15 @@ int main(int argc, char const *argv[]) {
     printf("\n .·´¯`· BEGIN WASH SHELL ·´¯`·.´¯`·.¸¸.·´¯`·.¸><(((º>\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("\n");
-    printf("Welcome to the wash - the Washington Shell.\n");
+    printf("Welcome to WAsh - the Washington Shell.\n");
     printf("Enter 'help' to see a list of available commands.\n");
     printf("\n");
 
     // initialize path
-    char* cwd = getcwd(cwd, 256);
+    char cwd[512];
+    getcwd(cwd, 512);
     shell_path[0] = cwd;
+    shell_path[1] = "test/path";
 
     // Prompt for input & pass tokens to CommandHandler()
     // until CommandHandler() returns -1 (exit)
