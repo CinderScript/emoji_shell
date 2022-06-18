@@ -306,7 +306,7 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  getpath");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("\n    - Prints all the directories in the PATH variable set by 'getpath'.\n");
+    printf("\n    - Prints all the directories in the PATH variable set by 'setpath'.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  help");
