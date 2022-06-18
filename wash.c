@@ -191,6 +191,12 @@ void CommandGetPath(size_t argCount) {
     }
 }
 void CommandLs(size_t argCount){
+    if (argCount > 0) {
+        SetTextColor(YELLOW_COLOR);
+        printf("'help' does not accept any arguments. The ");
+        printf("additional arguments were ignored.\n");
+    }
+
     DIR *dir;
     struct dirent *entry;
     char cwd[512];
@@ -236,29 +242,39 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  exit");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("   - exits the wash shell.\n");
+    printf("\n    - Exits the wash shell.\n");
+
+    SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
+    printf("  ls");
+    SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
+    printf("\n    - Prints the contents of the current directory.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  pwd");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("    - prints the current working directory.\n");
+    printf("\n    - Prints the path to the current working directory.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  cd");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf(" [dir]   - changes the current working directory to");
+    printf(" [dir]\n    - Changes the current working directory to");
     printf("the given directory.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  setpath");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf(" <dir> [dir] ... [dir]   - sets the path where ");
-    printf("wash will look for executable programs. \n");
+    printf(" <dir> [dir] ... [dir]\n    - Sets the path where ");
+    printf("wash will look for executable programs.\n");
+
+    SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
+    printf("  getpath");
+    SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
+    printf("\n    - Prints all the directories in the PATH variable set by 'getpath'.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  help");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("   - displays this help page.\n\n");
+    printf("\n    - Displays this help page.\n\n");
 }
 void CommandExternal(const char* command, char** tokens, size_t argCount){
     printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n\n");
