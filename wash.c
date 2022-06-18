@@ -207,13 +207,16 @@ void CommandLs(size_t argCount){
             strcat(entryPath, entry->d_name);
             struct stat entryStat;
             stat(entryPath, &entryStat);
-            if ( S_ISREG(entryStat.st_mode) ) { // is folder
+            if ( S_ISDIR(entryStat.st_mode) ) {        // is folder
                 SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
             }
-            else {
+            else if ( entryStat.st_mode & S_IXUSR ) {  // is executable
+                SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
+            }
+            else {                                     // is file
                 SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
             }
-            printf("%s\n", entry->d_name);
+            printf(" %s\n", entry->d_name);
         }
     }
     printf("\n");    
@@ -306,7 +309,7 @@ int CommandHandler(char** userInputTokens, size_t tokenCount) {
 int main(int argc, char const *argv[]) {
    
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
-    printf("\n .·´¯`· BEGIN WASH SHELL ·´¯`·.´¯`·.¸¸.·´¯`·.¸><(((º>\n");
+    printf("\n ---->-- WASH SHELL -------{--(@\n\n");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
     printf("\n");
     printf("Welcome to WAsh - the Washington Shell.\n");
@@ -352,7 +355,7 @@ int main(int argc, char const *argv[]) {
      } while ( commandResult != -1 );
 
     SetTextColorAndStyle(PURPLE_COLOR, BOLD_FONT);
-    printf("\n ---->-- END WASH SHELL -------{--(@\n\n");
+    printf("\n .¸.·´¯`· END ·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>\n");
     SetTextColorAndStyle(DEFAULT_COLOR, REGULAR_FONT);
     return 0;
 }
