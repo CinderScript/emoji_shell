@@ -458,7 +458,7 @@ void CommandExternal(char** args, size_t argCount) {
     else if (fork_id == 0) { // I'm the child
         // run the given program
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
-        printf("running  %s ", args[0]);
+        printf("\nRUNNING  %s ", args[0]);
         printf(".¸.·´¯·.¸¸·´¯`·.´¯`·.¸¸.·´¯`·.¸..><(((º>");
         SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
         printf("\n"); // required after for triggering color in child process
