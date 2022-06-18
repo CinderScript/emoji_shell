@@ -22,7 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-//#include <stdbool.h>
+#include <stdbool.h>
 
 #define MAX_INPUT_CHARS 256
 #define MAX_INPUT_ARGS 20
@@ -245,7 +245,7 @@ void CommandLs(size_t argCount) {
             if ( S_ISDIR(entryStat.st_mode) ) {        // is folder
                 SetTextColorAndStyle(BLUE_COLOR, REGULAR_FONT);
             }
-            else if ( entryStat.st_mode & S_IXUSR ) {  // is executable
+            else if ( entryStat.st_mode & S_IXUSR ) {  // check for executable flag
                 SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
             }
             else {                                     // is file
@@ -293,14 +293,15 @@ void CommandHelp(size_t argCount) {
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  cd");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf(" [dir]\n    - Changes the current working directory to");
-    printf("the given directory.\n");
+    printf(" [dir]\n    - Changes the current working directory to the given directory.\n");
+    printf("    - optional argument: if no argument is given, environment HOME is used.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  setpath");
     SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf(" <dir> [dir] ... [dir]\n    - Sets the path where ");
-    printf("wash will look for executable programs.\n");
+    printf(" <dir> [dir] ... [dir]\n    - Sets the path where wash will look for");
+    printf(" executable programs.\n");
+    printf("    - required argument: at least one path must be given.\n");
 
     SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
     printf("  getpath");
@@ -313,24 +314,27 @@ void CommandHelp(size_t argCount) {
     printf("\n    - Displays this help page.\n");
     printf("\n");
 
-    printf("Redirection Operator:\n");
-    SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
-    printf("  > ");
-    SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
-    printf("<filepath>  - Redirects output to the specified file.\n");
+    printf("External Commands:\n");
+    printf("  Enter the name of the executable command along with any arguments.\n");
+    printf("  All arguments should be delimited using a space. Example:\n");
+    printf("    ʕ•ᴥ•ʔ  |> find my_file\n");
+
+    // printf("Redirection Operator:\n");
+    // SetTextColorAndStyle(YELLOW_COLOR, BOLD_FONT);
+    // printf("  > ");
+    // SetTextColorAndStyle(YELLOW_COLOR, REGULAR_FONT);
+    // printf("<filepath>  - Redirects output to the specified file.\n");
     printf("\n");
 }
 void CommandExternal(char** args, size_t argCount) {
 
     int fork_id = fork();
 
-    if (fork_id < 0)
-    {
+    if (fork_id < 0) {
         PrintError("Was not able to create a new process.");
         return;
     }
-    else if (fork_id == 0) // I'm the child
-    {
+    else if (fork_id == 0) { // I'm the child
         // run the given program
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
         printf("running  %s ", args[0]);
@@ -338,9 +342,23 @@ void CommandExternal(char** args, size_t argCount) {
         SetTextColorAndStyle(GREEN_COLOR, REGULAR_FONT);
         printf("\n"); // required after for triggering color in child process
 
-        int result = execvp(args[0], args);
+        // check each PATH for the command given
+        char commandPath[MAX_PATH_LENGTH];
+        bool success = false;
+        char* current;
+        size_t i = 0;
+        while ( (current = shellPaths[i]) != NULL ) {
+            i += 1;
+            strcpy(commandPath, current);
+            strcat(commandPath, "/");
+            strcat(commandPath, args[0]);
+            if (execvp(commandPath, args) != -1) {  // it ran! Done.
+                success = true;
+                break;
+            }
+        }
 
-        if (result == -1)
+        if (!success)
         {
             // newline isn't needed
             PrintError("Was not able to run the command. Does it exist?");
@@ -417,13 +435,14 @@ int main(int argc, char const *argv[]) {
     do {
         SetTextColorAndStyle(BLUE_COLOR, BOLD_FONT);
         printf(" ʕ•ᴥ•ʔ  |> ");
+        fflush(stdout); // make sure prompt gets displayed before fgets
         SetTextColorAndStyle(CYAN_COLOR, REGULAR_FONT);
 
         char userInput[MAX_INPUT_CHARS] = {0};
         size_t bufferSize = MAX_INPUT_CHARS;
         fgets(userInput, bufferSize, stdin);
 
-        // check if ctrl-d was pressed and stop endless loop bug
+        // check if ctrl-d was pressed and stop endless loop
         if (strlen(userInput) == 0)
         {
             // no return was entered, so print one
